@@ -28,6 +28,8 @@ def logIn():
     ##prompt password
     loginPswd = input('Enter Password: ')
        #check pswd, then go to main menu, else retry 5 times
+    
+    mainMenu()
        
     print('\tdebug: login call')
     return
@@ -36,23 +38,24 @@ def logIn():
 * Register
 *******************************************'''
 def register():
-    #prompt email
-    emailTaken = True
+    ##prompt email
+    emailTaken = False   
     regEmail = input('Enter Email address: ')
        #check if email is free, else retry or prompt for cancel
     while emailTaken:
         if regEmail.lower() == 'cancel':
             main()  #debug for reiteration problems
         elif emailTaken:
-            regEmail = input("That Email address is taken. Enter a different one or enter 'Cancel' to cancel login: ")
-        #prompt: name, phone, password
-    if (regEmail.lower != cancel):
+            regEmail = input("That Email address is taken. Try again or enter 'Cancel':")
+        ##prompt: name, phone, password
+    if (regEmail.lower != 'cancel'):
         regName = input('Enter Full Name: ')
         regPhone = input('Enter Phone Number: ')
         regPswd = getpass.getpass('Enter Password (input is hidden): ')
         #decide if:
         print('Account has been created') 
-        #GOTO main menu
+        ##GOTO main menu
+        mainMenu()
         
     print('\tdebug: register call')
     return
@@ -61,72 +64,161 @@ def register():
 * Main Menu
 *******************************************'''
 def mainMenu():
-    #list all options:
+    divider()
+    ##list all options:
     print('This is your Main Menu.')
-    #   1. offer a ride
     print('\t1. Offer a Ride')
-    #   2. search for rides
     print('\t2. Search for Rides')
-    #   3. manage bookings
     print('\t3. Manage Bookings')
-    #   4. post ride request
     print('\t4. Post a Ride Request')
-    #   5. search ride requests
     print('\t5. Search for Ride Requests')
-    #   6. view/delete current ride requests
     print('\t6. View current Ride Requests')
-    #prompt for option
-    mmOpt = input('Please enter option number and press Enter: ')
+    mmOpt = input("Please enter option number or 'Quit': ")
+    invalidInput = True
+    
+    while invalidInput:
+        if mmOpt.lower() == 'quit':
+            return
+        elif mmOpt == '1':
+            invalidInput = False
+            offerRide()
+        elif mmOpt == '2':
+            invalidInput = False
+            searchRides()
+        elif mmOpt == '3':
+            invalidInput = False
+            manageBookings()
+        elif mmOpt == '4':
+            invalidInput = False
+            postRideReq()
+        elif mmOpt == '5':
+            invalidInput = False
+            searchRideReq()
+        elif mmOpt == '6':
+            invalidInput = False
+            viewRideReq()
+        else:
+            mmOpt = input("Invalid input. Try again: ")
     
     print('\tdebug: mainmenu call')
     return
 
 '''*******************************************
-* Offer a Ride
+* Offer a Ride - 1
 *******************************************'''
 def offerRide():
+    divider()
     
+    opt = input("Enter option number or 'Main Menu': ")
+    invalidOpt = True
+    
+    while invalidOpt:
+        if opt.lower() == "main menu":
+            invalidOpt = False
+            mainMenu()
+        else:
+            opt = input('Invalid option. Try again: ')
+            
     print('\tdebug: offerride call')
     return
 
 '''*******************************************
-* Search for Rides
+* Search for Rides - 2
 *******************************************'''
 def searchRides():
+    divider()
     
+    opt = input("Enter option number or 'Main Menu': ")
+    invalidOpt = True
+    
+    while invalidOpt:
+        if opt.lower() == "main menu":
+            invalidOpt = False
+            mainMenu()
+        else:
+            opt = input('Invalid option. Try again: ')
+            
     print('\tdebug: searchride call')
     return
 
 '''*******************************************
-* Manage Bookings
+* Manage Bookings - 3
 *******************************************'''
 def manageBookings():
+    divider()
     
+    opt = input("Enter option number or 'Main Menu': ")
+    invalidOpt = True
+    
+    while invalidOpt:
+        if opt.lower() == "main menu":
+            invalidOpt = False
+            mainMenu()
+        else:
+            opt = input('Invalid option. Try again: ')
+            
     print('\tdebug: bookings call')
     return
 
 '''*******************************************
-* Post Ride Request
+* Post Ride Request - 4
 *******************************************'''
 def postRideReq():
+    divider()
     
+    opt = input("Enter option number or 'Main Menu': ")
+    invalidOpt = True
+    
+    while invalidOpt:
+        if opt.lower() == "main menu":
+            invalidOpt = False
+            mainMenu()
+        else:
+            opt = input('Invalid option. Try again: ')
+            
     print('\tdebug: postreq call')
     return
 
 '''*******************************************
-* Search for Ride Requests
+* Search for Ride Requests - 5
 *******************************************'''
 def searchRideReq():
+    divider()
     
+    opt = input("Enter option number or 'Main Menu': ")
+    invalidOpt = True
+    
+    while invalidOpt:
+        if opt.lower() == "main menu":
+            invalidOpt = False
+            mainMenu()
+        else:
+            opt = input('Invalid option. Try again: ')
+            
     print('\tdebug: searchreq call')
     return
 
 '''*******************************************
-* View/Delete current Ride Requests
+* View/Delete current Ride Requests - 6
 *******************************************'''
 def viewRideReq():
+    divider()
     
+    opt = input("Enter option number or 'Main Menu': ")
+    invalidOpt = True
+    
+    while invalidOpt:
+        if opt.lower() == "main menu":
+            invalidOpt = False
+            mainMenu()
+        else:
+            opt = input('Invalid option. Try again: ')
+            
     print('\tdebug: viewreqs call')
     return
+
+'''** print simple divider for UI **'''
+def divider():
+    print('--------------------------------------')
 
 main()
