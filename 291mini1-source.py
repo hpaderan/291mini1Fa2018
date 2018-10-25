@@ -108,16 +108,41 @@ def mainMenu():
 *******************************************'''
 def offerRide():
     divider()
-    
-    opt = input("Enter option number or 'Main Menu': ")
+
+    ## Input check
+    opt = input('Offer a ride? (Y/N): ')
     invalidOpt = True
     
     while invalidOpt:
-        if opt.lower() == "main menu":
+        if opt.lower() == "n":
             invalidOpt = False
+            print("Redirecting to Main Menu.")
             mainMenu()
+        elif opt.lower() == "y":
+            invalidOpt = False
+            newOffer = True
         else:
             opt = input('Invalid option. Try again: ')
+            
+    if newOffer:
+        #create new ride offer  ##consider input check
+        newDate =  input("Date (YYYY-MM-DD): ")
+        newSeats = input("Number of seats offered: ")
+        newPrice = input("Price per seat: ")
+        newLugg =  input("Luggage description: ")
+        #keyword check
+        newSrc =   input("Source location: ")
+        newDst =   input("Destination location: ")
+        # optional enroute
+        # optional car no; check if owned by driver
+        # auto set driver and unique rno
+        
+        # post ride here
+        # success check
+        
+        #newOffer = False
+        print("Redirecting to Main Menu.")
+        mainMenu()
             
     print('\tdebug: offerride call')
     return
