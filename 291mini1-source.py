@@ -64,7 +64,7 @@ def Register():
 * Main Menu
 *******************************************'''
 def MainMenu():
-    divider()
+    Divider()
     ##list all options:
     print('This is your Main Menu.')
     print('\t1. Offer a Ride')
@@ -107,22 +107,11 @@ def MainMenu():
 * Offer a Ride - 1
 *******************************************'''
 def OfferRide():
-    divider()
+    Divider()
 
     ## Input check
     opt = input('Offer a ride? (Y/N): ')
-    invalidOpt = True
-    
-    while invalidOpt:
-        if opt.lower() == "n":
-            invalidOpt = False
-            print("Redirecting to Main Menu.")
-            MainMenu()
-        elif opt.lower() == "y":
-            invalidOpt = False
-            newOffer = True
-        else:
-            opt = input('Invalid option. Try again: ')
+    newOffer = YesOrNo(opt)
             
     ## everything that comes with offering a new ride       
     if newOffer:
@@ -143,7 +132,8 @@ def OfferRide():
         
         ## return to main menu on success/fail
         #newOffer = False
-        ToMainMenu()
+        
+    ToMainMenu()
             
     print('\tdebug: offerride call')
     return
@@ -152,7 +142,7 @@ def OfferRide():
 * Search for Rides - 2
 *******************************************'''
 def SearchRides():
-    divider()
+    Divider()
     
     ## Command check
     keywords = input("Enter Location keywords or 'Main Menu': ")
@@ -178,9 +168,10 @@ def SearchRides():
         else:
             numSeats = input("How many seats to book?: ")
             
-        #book seats here
+        # book seats here!!!!
+        
         #on success:
-        print("Booked",str(numSeats),"in ride", str(optRno))
+        print("Booking request sent: ",str(numSeats),"seats in ride", str(optRno))
         #on fail
         print("Booking failed.")
         
@@ -196,18 +187,55 @@ def SearchRides():
 * Manage Bookings - 3
 *******************************************'''
 def ManageBookings():
-    divider()
+    Divider()
     
-    opt = input("Enter option number or 'Main Menu': ")
+    # list all bookings
+    print("Here are all of your bookings.")
+    
+    #submenu
+    print("Options Menu")
+    print('\t1. Cancel a booking')
+    print('\t2. Book a member')
+    print('\t3. Return to Main Menu')
+    print('')
+    
+    
+    print("input('enter booking number to cancel booking')")
+    print("input('Cancel booking? (Y/N): ')")
+    # YesOrNo(whatevs)
+    
+    opt = input("Enter option number: ")
     invalidOpt = True
     
     while invalidOpt:
         if opt.lower() == "main menu":
             invalidOpt = False
             MainMenu()
+        elif opt.lower() == '3':
+            invalidOpt = False
+            MainMenu()
+        elif opt.lower() == '2':
+            invalidOpt = False
+            newBooking = True
+        elif opt.lower() == '1':
+            invalidOpt = False
+            cancelBooking = True
         else:
             opt = input('Invalid option. Try again: ')
-            
+    
+    if newBooking:
+        #create new booking here
+        print('')
+        #send message to booked member
+        
+    elif cancelBooking:
+        #cancel existing booking here
+        print("input('enter booking number to cancel booking')")
+        print("input('Cancel booking? (Y/N): ')")
+        #send message to booked member
+        
+    ToMainMenu()
+      
     print('\tdebug: bookings call')
     return
 
@@ -215,7 +243,7 @@ def ManageBookings():
 * Post Ride Request - 4
 *******************************************'''
 def PostRideReq():
-    divider()
+    Divider()
     
     opt = input("Enter option number or 'Main Menu': ")
     invalidOpt = True
@@ -279,7 +307,21 @@ def Divider():
     
 '''** redirect to main menu **'''
 def ToMainMenu():
-    print("Redirecting to Main Menu.")
-    mainMenu()
+    print("\nRedirecting to Main Menu.")
+    MainMenu()
+
+'''** Handle yes or no input **'''
+def YesOrNo(strParam):
+    invalidOpt = True
+    while invalidOpt:
+        if strParam.lower() == 'y':
+            result = True
+            invalidOpt = False
+        elif strParam.lower() == 'n':
+            result = False
+            invalidOpt = False
+        else:
+            strParam = input("Invalid option, try again (Y/N): ")
+    return result
 
 Main()
