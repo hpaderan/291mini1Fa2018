@@ -118,7 +118,7 @@ def OfferRide():
         #create new ride offer  ##consider input check
         newDate =  input("Date (YYYY-MM-DD): ")
         newSeats = input("Number of seats offered: ")
-        newPrice = input("Price per seat: ")
+        newPrice = input("Price per seat ($): ")
         newLugg =  input("Luggage description: ")
         #keyword check
         newSrc =   input("Source location: ")
@@ -245,15 +245,23 @@ def ManageBookings():
 def PostRideReq():
     Divider()
     
-    opt = input("Enter option number or 'Main Menu': ")
-    invalidOpt = True
+    opt = input('Offer a ride? (Y/N): ')
+    newRideReq = YesOrNo(opt)    
     
-    while invalidOpt:
-        if opt.lower() == "main menu":
-            invalidOpt = False
-            MainMenu()
-        else:
-            opt = input('Invalid option. Try again: ')
+    if newRideReq:
+        #prompts 
+        #create new ride req  ##consider input check
+        newDate =  input("Date (YYYY-MM-DD): ")
+        # keyword check
+        newPickup = input("Pickup location: ")
+        newDropoff = input("Drop-off location: ")
+        newPrice =  input("Price per seat ($): ")
+        #generate request id
+        #newEmail is the request poster
+        #finish create ridereq
+        #success message
+        
+    ToMainMenu()
             
     print('\tdebug: postreq call')
     return
