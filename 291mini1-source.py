@@ -3,7 +3,7 @@ import getpass
 '''*******************************************
 * Main function
 *******************************************'''
-def main():
+def Main():
     ##ask if log in or register
     print('Please enter option number and press Enter.')
     print('\t1. Log In with existing account.')
@@ -11,9 +11,9 @@ def main():
     startOpt = input('>>> ')
     
     if startOpt == '1':
-        logIn()
+        LogIn()
     elif startOpt == '2':
-        register()
+        Register()
         
     print('\tdebug: main call')
     return
@@ -21,7 +21,7 @@ def main():
 '''*******************************************
 * Log In
 *******************************************'''
-def logIn():
+def LogIn():
     ##prompt email
     loginEmail = input('Enter Email address: ')
        #check if account exists, else direct to register
@@ -29,7 +29,7 @@ def logIn():
     loginPswd = input('Enter Password: ')
        #check pswd, then go to main menu, else retry 5 times
     
-    mainMenu()
+    MainMenu()
        
     print('\tdebug: login call')
     return
@@ -37,7 +37,7 @@ def logIn():
 '''*******************************************
 * Register
 *******************************************'''
-def register():
+def Register():
     ##prompt email
     emailTaken = False   
     regEmail = input('Enter Email address: ')
@@ -55,7 +55,7 @@ def register():
         #decide if:
         print('Account has been created') 
         ##GOTO main menu
-        mainMenu()
+        MainMenu()
         
     print('\tdebug: register call')
     return
@@ -63,7 +63,7 @@ def register():
 '''*******************************************
 * Main Menu
 *******************************************'''
-def mainMenu():
+def MainMenu():
     divider()
     ##list all options:
     print('This is your Main Menu.')
@@ -81,22 +81,22 @@ def mainMenu():
             return
         elif mmOpt == '1':
             invalidInput = False
-            offerRide()
+            OfferRide()
         elif mmOpt == '2':
             invalidInput = False
-            searchRides()
+            SearchRides()
         elif mmOpt == '3':
             invalidInput = False
-            manageBookings()
+            ManageBookings()
         elif mmOpt == '4':
             invalidInput = False
-            postRideReq()
+            PostRideReq()
         elif mmOpt == '5':
             invalidInput = False
-            searchRideReq()
+            SearchRideReq()
         elif mmOpt == '6':
             invalidInput = False
-            viewRideReq()
+            ViewRideReq()
         else:
             mmOpt = input("Invalid input. Try again: ")
     
@@ -106,7 +106,7 @@ def mainMenu():
 '''*******************************************
 * Offer a Ride - 1
 *******************************************'''
-def offerRide():
+def OfferRide():
     divider()
 
     ## Input check
@@ -117,13 +117,14 @@ def offerRide():
         if opt.lower() == "n":
             invalidOpt = False
             print("Redirecting to Main Menu.")
-            mainMenu()
+            MainMenu()
         elif opt.lower() == "y":
             invalidOpt = False
             newOffer = True
         else:
             opt = input('Invalid option. Try again: ')
             
+    ## everything that comes with offering a new ride       
     if newOffer:
         #create new ride offer  ##consider input check
         newDate =  input("Date (YYYY-MM-DD): ")
@@ -140,9 +141,9 @@ def offerRide():
         # post ride here
         # success check
         
+        ## return to main menu on success/fail
         #newOffer = False
-        print("Redirecting to Main Menu.")
-        mainMenu()
+        ToMainMenu()
             
     print('\tdebug: offerride call')
     return
@@ -150,18 +151,43 @@ def offerRide():
 '''*******************************************
 * Search for Rides - 2
 *******************************************'''
-def searchRides():
+def SearchRides():
     divider()
     
-    opt = input("Enter option number or 'Main Menu': ")
-    invalidOpt = True
-    
-    while invalidOpt:
-        if opt.lower() == "main menu":
-            invalidOpt = False
-            mainMenu()
+    ## Command check
+    keywords = input("Enter Location keywords or 'Main Menu': ")
+
+    if keywords.lower() == "main menu":
+        MainMenu()
+    else:
+        #process keywords here
+        #split into single words
+        # search database; input check
+        results = ['poop', 'poo', 'po']
+        i = 0
+        
+        # if result success:
+        while (i < len(results) and i < 5):
+            #display results here
+            i += 1
+            print("printing", str(6 - i), "search results")
+        #on success, option to request booking on a ride
+        optRno = input("Enter rno of ride to be booked, or 'Cancel': ")
+        if optRno.lower() == 'cancel':
+            return
         else:
-            opt = input('Invalid option. Try again: ')
+            numSeats = input("How many seats to book?: ")
+            
+        #book seats here
+        #on success:
+        print("Booked",str(numSeats),"in ride", str(optRno))
+        #on fail
+        print("Booking failed.")
+        
+        # if search fail:
+        
+        #redirect main menu
+        ToMainMenu()
             
     print('\tdebug: searchride call')
     return
@@ -169,7 +195,7 @@ def searchRides():
 '''*******************************************
 * Manage Bookings - 3
 *******************************************'''
-def manageBookings():
+def ManageBookings():
     divider()
     
     opt = input("Enter option number or 'Main Menu': ")
@@ -178,7 +204,7 @@ def manageBookings():
     while invalidOpt:
         if opt.lower() == "main menu":
             invalidOpt = False
-            mainMenu()
+            MainMenu()
         else:
             opt = input('Invalid option. Try again: ')
             
@@ -188,7 +214,7 @@ def manageBookings():
 '''*******************************************
 * Post Ride Request - 4
 *******************************************'''
-def postRideReq():
+def PostRideReq():
     divider()
     
     opt = input("Enter option number or 'Main Menu': ")
@@ -197,7 +223,7 @@ def postRideReq():
     while invalidOpt:
         if opt.lower() == "main menu":
             invalidOpt = False
-            mainMenu()
+            MainMenu()
         else:
             opt = input('Invalid option. Try again: ')
             
@@ -207,8 +233,8 @@ def postRideReq():
 '''*******************************************
 * Search for Ride Requests - 5
 *******************************************'''
-def searchRideReq():
-    divider()
+def SearchRideReq():
+    Divider()
     
     opt = input("Enter option number or 'Main Menu': ")
     invalidOpt = True
@@ -216,7 +242,7 @@ def searchRideReq():
     while invalidOpt:
         if opt.lower() == "main menu":
             invalidOpt = False
-            mainMenu()
+            MainMenu()
         else:
             opt = input('Invalid option. Try again: ')
             
@@ -226,7 +252,7 @@ def searchRideReq():
 '''*******************************************
 * View/Delete current Ride Requests - 6
 *******************************************'''
-def viewRideReq():
+def ViewRideReq():
     divider()
     
     opt = input("Enter option number or 'Main Menu': ")
@@ -235,15 +261,25 @@ def viewRideReq():
     while invalidOpt:
         if opt.lower() == "main menu":
             invalidOpt = False
-            mainMenu()
+            MainMenu()
         else:
             opt = input('Invalid option. Try again: ')
             
     print('\tdebug: viewreqs call')
     return
 
-'''** print simple divider for UI **'''
-def divider():
-    print('--------------------------------------')
+'''***************************************************
+* Helper functions
+***************************************************'''
 
-main()
+
+'''** print simple divider **'''
+def Divider():
+    print('--------------------------------------')
+    
+'''** redirect to main menu **'''
+def ToMainMenu():
+    print("Redirecting to Main Menu.")
+    mainMenu()
+
+Main()
