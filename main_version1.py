@@ -4,6 +4,7 @@ import sqlite3
 
 connection = None
 cursor = None
+g_email = ' '
 
 def connect(path):
     global connection, cursor
@@ -20,7 +21,7 @@ def connect(path):
 *******************************************'''
 def Main():
     global connection, cursor
-    path = "./mini2.db"
+    path = "./mini1.db"
     connect(path)
     
     
@@ -42,7 +43,7 @@ def Main():
 * Log In
 *******************************************'''
 def LogIn():
-    global connection, cursor
+    global connection, cursor,g_email
     #user have total 6 times of input email and psw
     for i in range(6):
         ##prompt email
@@ -60,6 +61,7 @@ def LogIn():
         input_psw = input_psw[0]
         #check pswd, then go to main menu, else retry 5 times
         if input_psw == loginPswd.lower():
+            g_email = loginEmail.lower()
             MainMenu()
         else:
             print("Incorrect password please try again")
@@ -72,7 +74,7 @@ def LogIn():
 * Register
 *******************************************'''
 def Register():
-    global connection, cursor
+    global connection, cursor, g_email
     created = False
     ##prompt email
     emailTaken = False
@@ -82,28 +84,28 @@ def Register():
         #check if email is free, else retry or prompt for cancel
         cursor.execute("SELECT * FROM members WHERE email = ?;",input_email)
         result = cursor.fetchone()
+        if regEmail.lower() == 'cancel':
+            Main()  #debug for reiteration problems
+            
         if result != None:
-            emailTaken = True
+            emailTaken = True   
             
         if emailTaken:
             regEmail = input("That Email address is taken. Try again or enter 'Cancel':")
-            if regEmail.lower() == 'cancel':
-                Main()  #debug for reiteration problems
-            else:
-                continue
-                ##prompt: name, phone, password
-        if (regEmail.lower != 'cancel'):
+            continue
+        ##prompt: name, phone, password
+        else:
             regName = input('Enter Full Name: ')
             regPhone = input('Enter Phone Number: ')
             regPswd = getpass.getpass('Enter Password (input is hidden): ')
             regEmail = regEmail.lower()
-            info = (regEmail.lower(),regName.lower(),regPhone.lower(),regPswd.lower())
+            info = (regEmail,regName.lower(),regPhone.lower(),regPswd.lower())
             cursor.execute('INSERT INTO members(email, name, phone, pwd) VALUES (?,?,?,?);', info)
             print('Account has been created') 
-            connection.commit()
             created = True
-                
+    connection.commit()            
     ##GOTO main menu
+    g_email = regEmail
     MainMenu()
         
     print('\tdebug: register call')
@@ -165,10 +167,14 @@ def OfferRide():
     ## everything that comes with offering a new ride       
     if newOffer:
         #create new ride offer  ##consider input check
-        newDate =  input("Date (YYYY-MM-DD): ")
-        newSeats = input("Number of seats offered: ")
-        newPrice = input("Price per seat ($): ")
-        newLugg =  input("Luggage description: ")
+        inputDate =  input("Date (YYYY-MM-DD): ")
+        newDate = (inputDate.lower(),)
+        inputSeats = input("Number of seats offered: ")
+        newSeats = (inputSeats.lower(),)
+        inputprice = input("Price per seat ($): ")
+        newprice = (inputprice.lower(),)
+        inputLugg =  input("Luggage description: ")
+        newLugg = (inputLugg.lower(),)
         #keyword check
         newSrc =   input("Source location: ")
         newDst =   input("Destination location: ")
@@ -291,6 +297,7 @@ def ManageBookings():
 * Post Ride Request
 *******************************************'''
 def PostRideReq():
+    global connection, cursor,g_email
     Divider()
     
     opt = input('Offer a ride? (Y/N): ')
@@ -305,10 +312,16 @@ def PostRideReq():
         newDropoff = input("Drop-off location: ")
         newPrice =  input("Price per seat ($): ")
         #generate request id
+        cursor.execute('SELECT max(requests.rid) from requests;')
+        current_rid = cursor.fetchone()
+        new_rid = current_rid[0] + 1
         #newEmail is the request poster
         #finish create ridereq
+        info = (new_rid,g_email,newDate,newPickup.lower(),newDropoff.lower(),newPrice)
+        cursor.execute('INSERT INTO requests(rid, email, rdate, pickup, dropoff,amount) VALUES (?,?,?,?,?,?);', info)
         #success message
-        
+        connection.commit()
+        print('ride post successed')
     ToMainMenu()
             
     print('\tdebug: postreq call')
