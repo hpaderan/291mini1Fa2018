@@ -47,21 +47,20 @@ def LogIn():
     #user have total 6 times of input email and psw
     for i in range(6):
         ##prompt email
-        loginEmail = input('Enter Email address: ')
+        loginEmail = change_type(input('Enter Email address: '))
         ##prompt password
-        loginPswd = input('Enter Password: ')
-        input_email = (loginEmail.lower(),)
-        input_psw = (loginPswd,)
+        loginPswd = change_type(input('Enter Password: '))
+        print(loginEmail)
         #check if account exists, else direct to register
-        cursor.execute("SELECT pwd FROM members WHERE email = ?;",input_email)
-        input_psw = cursor.fetchone()
-        if input_psw == None:
+        cursor.execute("SELECT pwd FROM members WHERE email = ?;",loginEmail)
+        real_psw = cursor.fetchone()
+        if real_psw == None:
             print("Email address not exit, please try again")
             continue
-        input_psw = input_psw[0]
+        real_psw = real_psw[0]
         #check pswd, then go to main menu, else retry 5 times
-        if input_psw == loginPswd.lower():
-            g_email = loginEmail.lower()
+        if real_psw == loginPswd[0]:
+            g_email = loginEmail
             MainMenu()
         else:
             print("Incorrect password please try again")
@@ -78,27 +77,27 @@ def Register():
     created = False
     ##prompt email
     emailTaken = False
-    regEmail = input('Enter Email address: ')
+    regEmail = change_type(input('Enter Email address: '))
     while created == False:
-        input_email = (regEmail.lower(),)
         #check if email is free, else retry or prompt for cancel
-        cursor.execute("SELECT * FROM members WHERE email = ?;",input_email)
+        cursor.execute("SELECT * FROM members WHERE email = ?;",regEmail)
         result = cursor.fetchone()
-        if regEmail.lower() == 'cancel':
+        if regEmail[0] == 'cancel':
             Main()  #debug for reiteration problems
             
         if result != None:
             emailTaken = True   
             
         if emailTaken:
-            regEmail = input("That Email address is taken. Try again or enter 'Cancel':")
-            continue
+            print("That Email address is taken. Try again or enter 'Cancel'")
+            Register()
+            
         ##prompt: name, phone, password
         else:
             regName = input('Enter Full Name: ')
             regPhone = input('Enter Phone Number: ')
             regPswd = getpass.getpass('Enter Password (input is hidden): ')
-            regEmail = regEmail.lower()
+            regEmail = regEmail[0]
             info = (regEmail,regName.lower(),regPhone.lower(),regPswd.lower())
             cursor.execute('INSERT INTO members(email, name, phone, pwd) VALUES (?,?,?,?);', info)
             print('Account has been created') 
@@ -159,27 +158,64 @@ def MainMenu():
 *******************************************'''
 def OfferRide():
     Divider()
-
+    global connection, cursor, g_email
     ## Input check
     opt = input('Offer a ride? (Y/N): ')
     newOffer = YesOrNo(opt)
             
     ## everything that comes with offering a new ride       
     if newOffer:
+        #create a unique rno
+        cursor.execute('select max(rides.rno)from rides;')
+        current_rno = cursor.fetchone()
+        new_rno = current_rno[0] + 1        
         #create new ride offer  ##consider input check
-        inputDate =  input("Date (YYYY-MM-DD): ")
-        newDate = (inputDate.lower(),)
+        inputDate = input("Date (YYYY-MM-DD): ")
+
         inputSeats = input("Number of seats offered: ")
-        newSeats = (inputSeats.lower(),)
+
         inputprice = input("Price per seat ($): ")
-        newprice = (inputprice.lower(),)
+
         inputLugg =  input("Luggage description: ")
-        newLugg = (inputLugg.lower(),)
+
         #keyword check
-        newSrc =   input("Source location: ")
-        newDst =   input("Destination location: ")
-        # optional enroute
+        newSrc =  change_type( input("Source location: "))
+        newDst =  change_type( input("Destination location: "))
+        print('Please enter option and press Enter.')
+        
+        
+        
+        
         # optional car no; check if owned by driver
+        opt = input('Adding a car ? (Y/N): ')
+        car_add_succes = False
+        while car_add_succes == False:
+            car_add_opt = YesOrNo(opt)
+            if car_add_opt:
+                
+                cno = change_type(input("Please enter your cno or type cancel:"))
+                cursor.execute("SELECT owner FROM cars WHERE cno = ?;",cno)
+                car_search_result = cursor.fetchone()
+                
+                if car_search_result == None:
+                    print("Can not find this car, please try again")
+                    continue;
+                elif car_search_result[0] != g_email:
+                    print("This car does not belong to you,please try again")
+                
+                else:
+                    print("Car add successed")
+                    car_add_succes = True
+            
+        # optional enroute    
+        opt = input('Adding set of enroute location ? (Y/N): ')
+        add_enroute_opt = YesOrNo(opt)
+        if add_enroute_opt:
+            enroute_keyword = change_type(input("Please enter the keyword"))
+            keyword_search(enroute_keyword)
+                
+            
+
         # auto set driver and unique rno
         
         # post ride here
@@ -420,5 +456,40 @@ def YesOrNo(strParam):
         else:
             strParam = input("Invalid option, try again (Y/N): ")
     return result
+
+'''** convert input to sqlite3 readble typr **'''
+
+def change_type(strings):
+    output = (strings.lower(),)
+    return output
+
+'''** keyword search **'''
+def keyword_search(keyword):
+    global connection, cursor
+    similar_address = "%"+keyword + "%"
+    keyword = (keyword,keyword,keyword,similar_address)
+    cursor.execute("select distinct* from locations where lcode = ? or city = ? or prov = ? or address like ?; ",keyword)
+    result = cursor.fetchall()
+    length = len(result)
+    if length < 5:
+        for r in result:
+            print(r)
+    else:
+        printing = True
+        count = 0
+        while printing == True:
+            count += 5
+            length -= 5            
+            if length < 5:
+                for i in range(length):
+                    print(result[count+i])
+                print("printed all reavent locations")
+                break
+        
+            for i in range(5):
+                print(result[count+i])
+            opt = input('continue to print? (Y/N): ')
+            printing = YesOrNo(opt)
+
 
 Main()
