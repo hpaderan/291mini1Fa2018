@@ -230,7 +230,7 @@ def OfferRide():
     return
 
 '''*******************************************
-* Search for Rides
+* Search for Rides - Holden
 *******************************************'''
 def SearchRides():
     Divider()
@@ -275,7 +275,7 @@ def SearchRides():
     return
 
 '''*******************************************
-* Manage Bookings
+* Manage Bookings - Holden
 *******************************************'''
 def ManageBookings():
     Divider()
