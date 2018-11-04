@@ -45,6 +45,7 @@ def Main():
 def LogIn():
     global connection, cursor,g_email
     #user have total 6 times of input email and psw
+    loginSuccess = False
     for i in range(6):
         ##prompt email
         loginEmail = change_type(input('Enter Email address: '))
@@ -61,9 +62,16 @@ def LogIn():
         #check pswd, then go to main menu, else retry 5 times
         if real_psw == loginPswd[0]:
             g_email = loginEmail
-            MainMenu()
+            loginSuccess = True
+            break
         else:
             print("Incorrect password please try again")
+    
+    if loginSuccess:
+        MainMenu()
+    else:
+        print("Reached max number of tries. Exiting program.")
+        time.sleep(1)
     
        
     print('\tdebug: login call')
@@ -411,18 +419,35 @@ def SearchRideReq():
     return
 
 '''*******************************************
-* View/Delete current Ride Requests - Harrold
+* View/Delete current Ride Requests - Harrold, done
 *******************************************'''
 def ViewRideReq():
     Divider()
     
-    cancelRid = input('Enter Request ID to cancel request: ')
-    confirm = input("Cancel request? (Y/N): ")
-    cancel = YesOrNo(confirm)
+    #show user reqs here
+    global connection, cursor, g_email
     
+    cursor.execute("SELECT * FROM requests WHERE email = ?;", g_email)
+    reqs = cursor.fetchall()
+    for i in range(len(reqs)):
+        cursor.execute("SELECT address,city,prov FROM locations WHERE lcode = ?;", (reqs[i][3],))
+        newPickup = cursor.fetchone()
+        cursor.execute("SELECT address,city,prov FROM locations WHERE lcode = ?;", (reqs[i][4],))
+        newDropoff = cursor.fetchone()
+        
+        print (reqs[i][0],":", newPickup, "to" , newDropoff, reqs[i][2], "$", reqs[i][5])
+    
+    cancelRid = input('Enter Request ID to cancel request, or "Return": ')
+
+    if (cancelRid.lower != 'return'):
+        confirm = input("Cancel request? (Y/N): ")
+        cancel = YesOrNo(confirm)
+        
+    intRid = int(cancelRid)
     if cancel:
         print("Booking canceled.")
-        #cancel the booking here
+        cursor.execute("DELETE FROM requests WHERE rid = ?", (intRid,))
+        connection.commit()
         
     ToMainMenu()
             
