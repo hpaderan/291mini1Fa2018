@@ -364,7 +364,7 @@ def PostRideReq():
     return
 
 '''*******************************************
-* Search for Ride Requests
+* Search for Ride Requests - Harrold
 *******************************************'''
 def SearchRideReq():
     Divider()
@@ -411,7 +411,7 @@ def SearchRideReq():
     return
 
 '''*******************************************
-* View/Delete current Ride Requests
+* View/Delete current Ride Requests - Harrold
 *******************************************'''
 def ViewRideReq():
     Divider()
