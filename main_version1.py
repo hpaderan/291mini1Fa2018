@@ -320,37 +320,87 @@ def OfferRide():
 *******************************************'''
 def SearchRides():
     Divider()
+    global connection, cursor, g_email
     
     ## Command check
-    keywords = input("Enter Location keywords or 'Main Menu': ")
+    keywords = input("Enter 1-3 Location keywords or 'Main Menu': ")
 
-    if keywords.lower() == "main menu":
+    if keywords.lower()== 'main menu':
         ToMainMenu()
+
     else:
+        keywords = keywords.split()
+        location = []
+        for keys in keywords:
+            cursor.execute('''SELECT DISTINCT lcode
+                              FROM locations
+                              WHERE lcode = ?
+                              OR city LIKE ?
+                              OR prov LIKE ?
+                              OR address LIKE ? ;''',keys)
+            locations = location.append(cursor.fetchall())
+            locations = location(set(ids))
+
+    if len(locations)>2:
+        print("Please enter less than 3 keywords!")
+        ToMainMenu()
+
+    else:
+        results = []
+        for lcode in locations:
+            cursor.execute('''SELECT *
+                              FROM rides r, enroute e
+                              WHERE e.rno = r.rno AND e.lcode = ?
+                              OR r.src = ?
+                              OR r.dst = ? ;''',lcode)
+        results = result.append(cursor.fetchall())
+        results = result(set(ids))
+
         #process keywords here
         #split into single words
         # search database; input check
-        results = ['poop', 'poo', 'po']
         i = 0
         
         # if result success:
         while (i < len(results) and i < 5):
+            print(result[i])
             #display results here
             i += 1
-            print("printing", str(6 - i), "search results")
+
+        opt = True
+        while (i < len(results)and opt):
+            r = i
+            opt = input('Display 5 more? (Y/N): ')
+            display = YesOrNo(opt)
+            if display:
+                while (i < len(results)and i < r+5 ):
+                    print(result[i])
+                    i += 1
+            else:
+                pass
+
+
         #on success, option to request booking on a ride
         optRno = input("Enter rno of ride to be booked, or 'Cancel': ")
         if optRno.lower() == 'cancel':
             return
         else:
             numSeats = input("How many seats to book?: ")
-            
+            for ride in results:
+                if optRno = ride[0]:
+                    RefRid = ride
+                    pass
+            email = RefRid[7]
+            time = datetime.datetime.now()
+            content = 'Number of seats requested: '+str(numSeats)
+            rno = RefRid[0]
+            info = (email, time, g_mail, content, rno, 'Not Seen'))
+            cursor.execute('INSERT INTO inbox(email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?);', info)
+            connection.commit()
         # book seats here!!!!
         
         #on success:
-        print("Booking request sent: ",str(numSeats),"seats in ride", str(optRno))
-        #on fail
-        print("Booking failed.")
+            print("Booking request sent: ",str(numSeats),"seats in ride", str(optRno))
         
         # if search fail:
         
