@@ -470,9 +470,14 @@ def ManageBookings():
     
     if newBooking:
         member = change_type(input('Enter the EMAIL of the member whose ride you want to book: '))
-        cursor.execute('''SELECT * FROM rides WHERE driver LIKE ? ;''', (member))
+        try:
+            cursor.execute('''SELECT * FROM rides WHERE driver LIKE ? ;''', (member))
+            RidList = cursor.fetchall()
+        except:
+            print('Please enter a valid email address!')
+            ToMainManu()
 
-        RidList = cursor.fetchall()
+        
 
         i = 0
         while (i<len(RidList) and i<5):
