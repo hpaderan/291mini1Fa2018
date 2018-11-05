@@ -356,7 +356,7 @@ def SearchRides():
                               OR r.src = ?
                               OR r.dst = ?
                               GROUP BY r.rno
-                              HAVING r.rno = e.rno AND r.cno = c.cno;''',lcode)
+                              HAVING r.rno = e.rno AND r.cno = c.cno;''', lcode)
         results = result.append(cursor.fetchall())
 
         #process keywords here
@@ -390,14 +390,14 @@ def SearchRides():
         else:
             numSeats = input("How many seats to book?: ")
             for ride in results:
-                if optRno = ride[0]:
+                if optRno == ride:
                     RefRid = ride
                     pass
             email = RefRid[7]
             t = datetime.datetime.now()
             content = 'Number of seats requested: '+str(numSeats)
             rno = RefRid[0]
-            info = (email, time, g_mail, content, rno, 'n'))
+            info = (email, time, g_mail, content, rno, 'n')
             cursor.execute('INSERT INTO inbox(email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?);', info)
             connection.commit()
         # book seats here!!!!
@@ -469,7 +469,7 @@ def ManageBookings():
             opt = input('Display 5 more? (Y/N): ')
             display = YesOrNo(opt)
             if display:
-                while (i < len(RidList) and i < r+5)):
+                while (i < len(RidList) and i < r+5):
                     print(RidList[i])
                     i += 1
             else:
@@ -510,7 +510,7 @@ def ManageBookings():
         targetBno = input('Enter booking number to cancel booking: ')
         confirm = input('Cancel booking? (Y/N): ')
         cancelBno = YesOrNo(confirm)
-        cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;'targetBno)
+        cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
         RefRid = cursor.fetchone()
         email = RefRid[7]
         content = "The Booking has been canceled"
