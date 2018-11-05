@@ -143,7 +143,26 @@ def Register():
 * Main Menu
 *******************************************'''
 def MainMenu():
+    global connection, cursor, g_email
     Divider()
+    
+    ##display messages
+    cursor.execute("SELECT * FROM inbox WHERE email = ?;", g_email)
+    inboxAll = cursor.fetchall()
+    cursor.execute("UPDATE inbox SET seen = 'y' WHERE email = ?;", g_email)
+    connection.commit()
+    
+    print("Inbox: ")
+    if (len(inboxAll) < 1):
+        print("You have no new messages.")
+    for newMssg in inboxAll:
+        print(newMssg[5])
+        if (newMssg[5] == 'n'):
+            print("%s Rno %s \n%s: %s\n" % (newMssg[1], newMssg[4], newMssg[2], newMssg[3]))
+        
+    Divider()
+    time.sleep(1)
+    
     ##list all options:
     print('This is your Main Menu.')
     print('\t1. Offer a Ride')
