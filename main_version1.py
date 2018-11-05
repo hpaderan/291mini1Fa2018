@@ -2,6 +2,7 @@ import time
 import getpass
 import sqlite3
 import datetime
+import re
 
 connection = None
 cursor = None
@@ -67,7 +68,6 @@ def LogIn():
         loginEmail = change_type(input('Enter Email address: '))
         if (loginEmail[0].lower() == "cancel"):
             break
-        ##prompt password
         loginPswd = change_type(input('Enter Password: '))
         #check if account exists
         cursor.execute("SELECT pwd FROM members WHERE email = ?;",loginEmail)
@@ -334,6 +334,7 @@ def SearchRides():
 
     else:
         keywords = keywords.split()
+        print(keywords)
         location = []
         for keys in keywords:
             cursor.execute('''SELECT DISTINCT lcode
@@ -420,11 +421,14 @@ def SearchRides():
 * Manage Bookings - Holden
 *******************************************'''
 def ManageBookings():
-    Divider()
     
+    Divider()
+    global connection, cursor, g_email
     # list all bookings
-    cursor.execute('SELECT * FROM bookings WHERE email = ? ;', g_mail)
+    cursor.execute('SELECT * FROM bookings WHERE email = ? ;', g_email)
     Blist = cursor.fetchall()
+    if Blist == None:
+        print("No booking have found")
     print("Here are all of your bookings.")
     for bookings in Blist:
         print(str(bookings))
@@ -459,7 +463,7 @@ def ManageBookings():
     
     if newBooking:
         member = input('Enter the EMAIL of the member whose ride you want to book: ')
-        cursor.execute('''SELECT * FROM rides WHERE driver = ? ;''', member)
+        cursor.execute('''SELECT * FROM rides WHERE driver = ? ;''', (member,))
         RidList = cursor.fetchall()
 
         i = 0
@@ -494,7 +498,7 @@ def ManageBookings():
         bno = 1 + int(bno[0])
 
         
-        cursor.execute('SELECT seats FROM rides WHERE rno = ? ;', Brno)
+        cursor.execute('SELECT seats FROM rides WHERE rno = ? ;', (Brno,))
         rseats = cursor.fetchone()
         if seats > int(rseats[0]):
             print('Warning! This member may not be able to offer all seats for your request! Your booking will still be registed.')
@@ -506,20 +510,21 @@ def ManageBookings():
         content = 'Someone has offered a Booking!'
         ti = datetime.datetime.now()
         
-        mess = (member, ti, g_mail, content, Brno, 'n')
+        mess = (member, ti, g_email[0], content, Brno, 'n')
         cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
         #send message to booked member
         
     elif cancelBooking:
-        targetBno = input('Enter booking number to cancel booking: ')
+        targetBno = change_type(input('Enter booking number to cancel booking: '))
         confirm = input('Cancel booking? (Y/N): ')
         cancelBno = YesOrNo(confirm)
-        cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
+        cursor.execute('SELECT * FROM rides,bookings WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno)
         RefRid = cursor.fetchone()
+        print(RefRid)
         email = RefRid[7]
         content = "The Booking has been canceled"
         t = datetime.datetime.now()
-        sender = g_mail
+        sender = g_email[0]
         rno = RefRid[0]
         mess = (email, t, sender, content, rno, 'n')
         cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
@@ -559,7 +564,7 @@ def PostRideReq():
         new_rid = current_rid[0] + 1
         #newEmail is the request poster
         #finish create ridereq
-        info = (new_rid,g_email,newDate,newPickup.lower(),newDropoff.lower(),newPrice)
+        info = (new_rid,g_email[0],newDate,newPickup.lower(),newDropoff.lower(),newPrice)
         cursor.execute('INSERT INTO requests(rid, email, rdate, pickup, dropoff,amount) VALUES (?,?,?,?,?,?);', info)
         #success message
         connection.commit()
