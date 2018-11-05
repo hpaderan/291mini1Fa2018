@@ -4,7 +4,7 @@ import sqlite3
 
 connection = None
 cursor = None
-g_email = ' '
+g_email = None
 
 def connect(path):
     global connection, cursor
@@ -167,6 +167,7 @@ def MainMenu():
 def OfferRide():
     Divider()
     global connection, cursor, g_email
+    print(g_email)
     ## Input check
     opt = input('Offer a ride? (Y/N): ')
     newOffer = YesOrNo(opt)
@@ -187,24 +188,43 @@ def OfferRide():
         inputLugg =  input("Luggage description: ")
 
         #keyword check
-        newSrc =  change_type( input("Source location: "))
-        newDst =  change_type( input("Destination location: "))
+        newSrc_add_success = False
+        while newSrc_add_success == False:
+            newSrc =  change_type( input("Source location: "))
+            cursor.execute("SELECT * FROM locations WHERE lcode = ?;",newSrc)
+            key_word_search = cursor.fetchone()
+            if key_word_search == None:
+                print("Invalid keyword plese chooes and enter one of the following lcode")
+                keyword_search(newSrc[0])
+                continue
+            else:
+                newSrc_add_success = True        
+        
+        
+        newDst_add_success = False
+        while newDst_add_success == False:
+            newDst =  change_type( input("Destination location: "))
+            cursor.execute("SELECT * FROM locations WHERE lcode = ?;",newDst)
+            key_word_search = cursor.fetchone()
+            if key_word_search == None:
+                print("Invalid keyword plese chooes and enter one of the following lcode")
+                keyword_search(newDst[0])
+                continue
+            else:
+                newDst_add_success = True            
+        
         print('Please enter option and press Enter.')
         
-        
-        
-        
         # optional car no; check if owned by driver
-        opt = input('Adding a car ? (Y/N): ')
         car_add_succes = False
         while car_add_succes == False:
+            opt = input('Adding a car ? (Y/N): ')
             car_add_opt = YesOrNo(opt)
             if car_add_opt:
-                
-                cno = change_type(input("Please enter your cno or type cancel:"))
+                cno = change_type(input("Please enter your cno"))
                 cursor.execute("SELECT owner FROM cars WHERE cno = ?;",cno)
                 car_search_result = cursor.fetchone()
-                
+                print(car_search_result[0])
                 if car_search_result == None:
                     print("Can not find this car, please try again")
                     continue;
@@ -214,19 +234,36 @@ def OfferRide():
                 else:
                     print("Car add successed")
                     car_add_succes = True
+                    insert_cno = cno[0]
+            else:
+                insert_cno = None
+                car_add_succes = True
             
-        # optional enroute    
-        opt = input('Adding set of enroute location ? (Y/N): ')
-        add_enroute_opt = YesOrNo(opt)
-        if add_enroute_opt:
-            enroute_keyword = change_type(input("Please enter the keyword"))
-            keyword_search(enroute_keyword)
-                
+        # optional enroute
+        enroute_add_success = False
+        while enroute_add_success == False:
+            opt = input('Adding set of enroute location ? (Y/N): ')
+            add_enroute_opt = YesOrNo(opt)
+            if add_enroute_opt:
+                keyword = change_type(input("Please enter the keyword (lcode)"))
+                cursor.execute("SELECT * FROM locations WHERE lcode = ?;",keyword)
+                key_word_search = cursor.fetchone()
+                if key_word_search == None:
+                    keyword_search(keyword[0])
+                    continue
+                enroute_info = (new_rno,keyword)
+                cursor.execute('INSERT INTO enroute(rno, lcode) VALUES (?,?);', enroute_info)
+                connection.commit() 
+            else:
+                enroute_add_success = True
             
 
         # auto set driver and unique rno
-        
+        info = (new_rno,inputprice,inputDate,inputSeats,inputLugg.lower(),newSrc,newDst,g_email,insert_cno)
+        cursor.execute('INSERT INTO rides(rno, price, rdate,seats,lugDesc, src, dst, driver, cno) VALUES (?,?,?,?,?,?,?,?,?);', info)
+        connection.commit()
         # post ride here
+        print("offer rides successed")
         # success check
         
         ## return to main menu on success/fail
@@ -236,6 +273,7 @@ def OfferRide():
             
     print('\tdebug: offerride call')
     return
+
 
 '''*******************************************
 * Search for Rides - Holden
@@ -488,12 +526,14 @@ def change_type(strings):
     output = (strings.lower(),)
     return output
 
-'''** keyword search **'''
+'''** keyword search print location that related with or similar with (print only)**'''
 def keyword_search(keyword):
     global connection, cursor
+    keyword = keyword.capitalize()
+    print(keyword)
     similar_address = "%"+keyword + "%"
-    keyword = (keyword,keyword,keyword,similar_address)
-    cursor.execute("select distinct* from locations where lcode = ? or city = ? or prov = ? or address like ?; ",keyword)
+    keyword = (keyword,keyword,similar_address)
+    cursor.execute("select distinct* from locations where city = ? or prov = ? or address like ?; ",keyword)
     result = cursor.fetchall()
     length = len(result)
     if length < 5:
@@ -509,12 +549,11 @@ def keyword_search(keyword):
                 for i in range(length):
                     print(result[count+i])
                 print("printed all reavent locations")
-                break
         
             for i in range(5):
                 print(result[count+i])
             opt = input('continue to print? (Y/N): ')
             printing = YesOrNo(opt)
-
+    return
 
 Main()
