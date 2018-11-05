@@ -23,8 +23,13 @@ def connect(path):
 *******************************************'''
 def Main():
     global connection, cursor
+    #path = input("Enter database path: ")
     path = "./mini1.db"
-    connect(path)
+    try:
+        connect(path)
+    except:
+        print("Error loading database. Exiting program")
+        return
     
     
     ##ask if log in or register
@@ -68,7 +73,7 @@ def LogIn():
         loginEmail = change_type(input('Enter Email address: '))
         if (loginEmail[0].lower() == "cancel"):
             break
-        loginPswd = change_type(input('Enter Password: '))
+        loginPswd = change_type(getpass.getpass('Enter Password: '))
         #check if account exists
         cursor.execute("SELECT pwd FROM members WHERE email = ?;",loginEmail)
         real_psw = cursor.fetchone()
@@ -533,19 +538,31 @@ def ManageBookings():
             print('You have no Bookings currently!')
             ToMainMenu()
         targetBno = change_type(input('Enter booking number to cancel booking: '))
+        unownedBno = True
+        while unownedBno:
+            print(int(targetBno[0]))
+            cursor.execute("SELECT email FROM bookings WHERE bno = ?;", (int(targetBno[0]),))
+            someResult = cursor.fetchone()
+            if (someResult == None):
+                targetBno = input("This Booking is not yours. Please try again: ")
+            elif (g_email[0] == someResult[0]):
+                unownedBno = False
+            else:
+                targetBno = input("This Booking is not yours. Please try again: ")
         confirm = input('Cancel booking? (Y/N): ')
         cancelBno = YesOrNo(confirm)
-        cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
-        RefRid = cursor.fetchone()
-        email = RefRid[7]
-        content = "The Booking has been canceled"
-        t = datetime.datetime.now()
-        sender = g_mail
-        rno = RefRid[0]
-        mess = (email, t, sender, content, rno, 'n')
-        cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
-        cursor.execute('DELETE FROM bookings WHERE bno = ? ;', targetBno)
-        connection.commit()
+        if (cancelBno):
+            cursor.execute('SELECT * FROM rides, bookings WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
+            RefRid = cursor.fetchone()
+            email = RefRid[7]
+            content = "The Booking has been canceled"
+            t = datetime.datetime.now()
+            sender = g_email
+            rno = RefRid[0]
+            mess = (email, t, sender[0], content, rno, 'n')
+            cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
+            cursor.execute('DELETE FROM bookings WHERE bno = ? ;', targetBno)
+            connection.commit()
         #cancel booking here
         #send message to booked member
 
