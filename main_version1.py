@@ -496,7 +496,14 @@ def ManageBookings():
         print('')
         
 
-        Brno = change_type(input('Please enter the Ride Number that you want to book: '))
+        Brno = change_type(input('Please enter the Ride Number that you want to book: '))    
+        try:
+            cursor.execute('SELECT seats FROM rides WHERE rno = ? ;', Brno)
+        except:
+            print('Please choose a valid Ride!')
+            ToMainMenu()
+        rseats = cursor.fetchone()
+
         email = change_type(input('Please enter the email of the member who offers the ride: '))
         cost = change_type(input('Please enter the price you can offer for each seat: '))
         seats = input('Please enter the seat required of your booking: ')
@@ -507,8 +514,6 @@ def ManageBookings():
         bno = 1 + int(bno[0])
 
         
-        cursor.execute('SELECT seats FROM rides WHERE rno = ? ;', Brno)
-        rseats = cursor.fetchone()
         if int(seats) > int(rseats[0]):
             print('Warning! This member may not be able to offer all seats for your request! Your booking will still be registed.')
 
