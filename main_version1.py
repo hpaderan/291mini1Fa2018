@@ -30,12 +30,24 @@ def Main():
     print('Please enter option number and press Enter.')
     print('\t1. Log In with existing account.')
     print('\t2. Register a new account.')
+    print("\t3. Exit program.")
     startOpt = input('>>> ')
     
-    if startOpt == '1':
-        LogIn()
-    elif startOpt == '2':
-        Register()
+    while (startOpt != '3'):     
+        if startOpt == '1':
+            LogIn()
+        elif startOpt == '2':
+            Register()
+        elif startOpt == '3':
+            continue
+        else:
+            print("Invalid input.")
+        Divider()
+        print('Please enter option number and press Enter.')
+        print('\t1. Log In with existing account.')
+        print('\t2. Register a new account.')
+        print("\t3. Exit program.")
+        startOpt = input(">>> ")
         
     print('\tdebug: main call')
     return
@@ -44,34 +56,42 @@ def Main():
 * Log In
 *******************************************'''
 def LogIn():
+    Divider()
     global connection, cursor,g_email
     #user have total 6 times of input email and psw
     loginSuccess = False
-    for i in range(6):
+    maxTry = False
+    i = 0
+    while (loginSuccess == False and i < 5):
         ##prompt email
         loginEmail = change_type(input('Enter Email address: '))
+        if (loginEmail[0].lower() == "cancel"):
+            break
         ##prompt password
         loginPswd = change_type(input('Enter Password: '))
-        print(loginEmail)
-        #check if account exists, else direct to register
+        #check if account exists
         cursor.execute("SELECT pwd FROM members WHERE email = ?;",loginEmail)
         real_psw = cursor.fetchone()
         if real_psw == None:
-            print("Email address not exit, please try again")
-            continue
-        real_psw = real_psw[0]
-        #check pswd, then go to main menu, else retry 5 times
-        if real_psw == loginPswd[0]:
-            g_email = loginEmail
-            loginSuccess = True
-            break
+            print("Email address not exit, please try again, or 'Cancel'")
         else:
-            print("Incorrect password please try again")
-    
+            real_psw = real_psw[0]
+            #check pswd, then go to main menu, else retry 5 times
+            if real_psw == loginPswd[0]:
+                g_email = loginEmail
+                loginSuccess = True
+            else:
+                i += 1
+                print("Incorrect password please try again")
+                if (i < 5):
+                    maxTry = True
+        
     if loginSuccess:
+        cursor.execute("SELECT name FROM members WHERE email = ?;", loginEmail)
+        print("Hello, %s." % cursor.fetchone())
         MainMenu()
-    else:
-        print("Reached max number of tries. Exiting program.")
+    elif maxTry:
+        print("Reached max number of tries")
         time.sleep(1)
     
        
@@ -132,11 +152,11 @@ def MainMenu():
     print('\t4. Post a Ride Request')
     print('\t5. Search for Ride Requests')
     print('\t6. View current Ride Requests')
-    mmOpt = input("Please enter option number or 'Quit': ")
+    mmOpt = input("Please enter option number or 'Log Out': ")
     invalidInput = True
     
     while invalidInput:
-        if mmOpt.lower() == 'quit':
+        if mmOpt.lower() == 'log out':
             return
         elif mmOpt == '1':
             invalidInput = False
