@@ -496,12 +496,12 @@ def ManageBookings():
         print('')
         
 
-        Brno = input('Please enter the Ride Number that you want to book: ')
-        email = input('Please enter the email of the member who offers the ride: ')
-        cost = input('Please enter the price you can offer for each seat: ')
-        seats = input('Please enter the seat required of your booking: ')
-        pickup = input('Please enter the location code of your pick up location: ')
-        dropoff = input('Please enter the location code of your drop off location: ')
+        Brno = change_type(input('Please enter the Ride Number that you want to book: '))
+        email = change_type(input('Please enter the email of the member who offers the ride: '))
+        cost = change_type(input('Please enter the price you can offer for each seat: '))
+        seats = change_type(input('Please enter the seat required of your booking: '))
+        pickup = change_type(input('Please enter the location code of your pick up location: '))
+        dropoff = change_type( input('Please enter the location code of your drop off location: '))
         cursor.execute('SELECT COUNT(*) FROM bookings ')
         bno = cursor.fetchone()
         bno = 1 + int(bno[0])
@@ -509,11 +509,15 @@ def ManageBookings():
         
         cursor.execute('SELECT seats FROM rides WHERE rno = ? ;', Brno)
         rseats = cursor.fetchone()
-        if seats > int(rseats[0]):
+        if int(seats) > int(rseats[0]):
             print('Warning! This member may not be able to offer all seats for your request! Your booking will still be registed.')
 
-        info = (bno, email, Brno, cost, seats, pickup, fropoff)
-        cursor.execute('INSERT INTO bookings(bno, email, rno, cost, seats, pickup, dropoff) VALUE (?,?,?,?,?,?,?);', info)
+        info = (bno, email, Brno, cost, seats, pickup, dropoff)
+        try:
+            cursor.execute("INSERT INTO bookings(bno, email, rno, cost, seats, pickup, dropoff) VALUES (?,?,?,?,?,?,?)", info)
+        except:
+            print('f')
+            ToMainMenu()
         connection.commit()
         
         content = 'Someone has offered a Booking!'
@@ -522,12 +526,13 @@ def ManageBookings():
         mess = (member, ti, g_mail, content, Brno, 'n')
         cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
         #send message to booked member
+
         
     elif cancelBooking:
         if len(Blist)<1:
             print('You have no Bookings currently!')
             ToMainMenu()
-        targetBno = input('Enter booking number to cancel booking: ')
+        targetBno = change_type(input('Enter booking number to cancel booking: '))
         confirm = input('Cancel booking? (Y/N): ')
         cancelBno = YesOrNo(confirm)
         cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
