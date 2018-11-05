@@ -499,7 +499,7 @@ def ManageBookings():
         Brno = change_type(input('Please enter the Ride Number that you want to book: '))
         email = change_type(input('Please enter the email of the member who offers the ride: '))
         cost = change_type(input('Please enter the price you can offer for each seat: '))
-        seats = change_type(input('Please enter the seat required of your booking: '))
+        seats = input('Please enter the seat required of your booking: ')
         pickup = change_type(input('Please enter the location code of your pick up location: '))
         dropoff = change_type( input('Please enter the location code of your drop off location: '))
         cursor.execute('SELECT COUNT(*) FROM bookings ')
@@ -512,19 +512,18 @@ def ManageBookings():
         if int(seats) > int(rseats[0]):
             print('Warning! This member may not be able to offer all seats for your request! Your booking will still be registed.')
 
-        info = (bno, email, Brno, cost, seats, pickup, dropoff)
-        try:
-            cursor.execute("INSERT INTO bookings(bno, email, rno, cost, seats, pickup, dropoff) VALUES (?,?,?,?,?,?,?)", info)
-        except:
-            print('f')
-            ToMainMenu()
+        info = (bno, email[0], Brno[0], cost[0], seats, pickup[0], dropoff[0])
+
+        cursor.execute("INSERT INTO bookings(bno, email, rno, cost, seats, pickup, dropoff) VALUES (?,?,?,?,?,?,?)", info)
         connection.commit()
-        
-        content = 'Someone has offered a Booking!'
+        contet = input("Message to the Provider: ")
         ti = datetime.datetime.now()
         
-        mess = (member, ti, g_mail, content, Brno, 'n')
-        cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
+        mess = (member[0], ti, g_email[0], contet, Brno[0], 'n')
+        cursor.execute( "INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
+        connection.commit()
+        print('A message has been sent to the provider!')
+        time.sleep(2)
         #send message to booked member
 
         
@@ -538,14 +537,16 @@ def ManageBookings():
         cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
         RefRid = cursor.fetchone()
         email = RefRid[7]
-        content = "The Booking has been canceled"
+        content = input("Message to the Provider: ")
         t = datetime.datetime.now()
-        sender = g_mail
+        sender = g_email
         rno = RefRid[0]
-        mess = (email, t, sender, content, rno, 'n')
+        mess = (email[0], t, sender[0], content, rno, 'n')
         cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
         cursor.execute('DELETE FROM bookings WHERE bno = ? ;', targetBno)
         connection.commit()
+        print("A message has been sent to the provider!")
+        time.sleep(2)
         #cancel booking here
         #send message to booked member
 
