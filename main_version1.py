@@ -2,6 +2,7 @@ import time
 import getpass
 import sqlite3
 import datetime
+import re
 
 connection = None
 cursor = None
@@ -67,7 +68,6 @@ def LogIn():
         loginEmail = change_type(input('Enter Email address: '))
         if (loginEmail[0].lower() == "cancel"):
             break
-        ##prompt password
         loginPswd = change_type(input('Enter Password: '))
         #check if account exists
         cursor.execute("SELECT pwd FROM members WHERE email = ?;",loginEmail)
@@ -333,35 +333,39 @@ def SearchRides():
         ToMainMenu()
 
     else:
-        keywords = keywords.split()
-        location = []
+        keywords = keywords.split(' ')
+        locations = []
         for keys in keywords:
-            cursor.execute('''SELECT DISTINCT lcode
+            pkeys = '%' + keys + '%'
+            cursor.execute("""SELECT DISTINCT lcode
                               FROM locations
                               WHERE lcode = ?
                               OR city LIKE ?
                               OR prov LIKE ?
-                              OR address LIKE ? ;''',keys)
+                              OR address LIKE ? ;""", (keys,pkeys,pkeys,pkeys))
             Ref = cursor.fetchall()
             for Re in Ref: 
-                locations = location.append(Re)
-                locations = location(set(ids))
+                locations.append(Re)
+            locations = list(set(Ref) & set(locations))
 
-    if len(locations)>2:
-        print("Please enter less or equal to 3 keywords!")
+    if not locations:
+        print('Please input valid keywords')
         ToMainMenu()
+    
 
     else:
         results = []
         for lcode in locations:
-            cursor.execute('''SELECT *
+            lcode = str(lcode[0])
+            cursor.execute('''SELECT DISTINCT *
                               FROM rides r, enroute e, cars c
                               WHERE e.rno = r.rno AND e.lcode = ?
                               OR r.src = ?
                               OR r.dst = ?
                               GROUP BY r.rno
-                              HAVING r.rno = e.rno AND r.cno = c.cno;''', lcode)
-        results = result.append(cursor.fetchall())
+                              ;''', (lcode,lcode,lcode))
+            for result in cursor.fetchall():
+                results.append(result)
 
         #process keywords here
         #split into single words
@@ -370,7 +374,7 @@ def SearchRides():
         
         # if result success:
         while (i < len(results) and i < 5):
-            print(result[i])
+            print(results[i])
             #display results here
             i += 1
 
@@ -381,7 +385,7 @@ def SearchRides():
             display = YesOrNo(opt)
             if display:
                 while (i < len(results)and i < r+5 ):
-                    print(result[i])
+                    print(results[i])
                     i += 1
             else:
                 opt = False
@@ -392,25 +396,33 @@ def SearchRides():
         if optRno.lower() == 'cancel':
             return
         else:
-            numSeats = input("How many seats to book?: ")
+            RefRid = []
             for ride in results:
-                if optRno == ride:
+                if str(optRno) == str(ride[0]):
                     RefRid = ride
                     pass
-            email = RefRid[7]
+            try:
+                email = RefRid[7]
+            except:
+                print('Please choose a valide ride!')
+                ToMainMenu()
+            print('email: ', email)
+            numSeats = input("How many seats to book?: ")
             t = datetime.datetime.now()
             content = 'Number of seats requested: '+str(numSeats)
             rno = RefRid[0]
             info = (email, time, g_mail, content, rno, 'n')
-            cursor.execute('INSERT INTO inbox(email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?);', info)
+            cursor.execute('INSERT INTO inbox(email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?);', info)
             connection.commit()
         # book seats here!!!!
-        #on success:
+        #on success:s
             print("Booking request sent: ",str(numSeats),"seats in ride", str(optRno))
+            time.sleep(2)
         
         # if search fail:
         
     #redirect main menu
+    
     ToMainMenu()
             
     print('\tdebug: searchride call')
@@ -421,9 +433,8 @@ def SearchRides():
 *******************************************'''
 def ManageBookings():
     Divider()
-    
-    # list all bookings
-    cursor.execute('SELECT * FROM bookings WHERE email = ? ;', g_mail)
+    global connection, cursor, g_email    # list all bookings
+    cursor.execute('SELECT * FROM bookings WHERE email = ? ;', g_email)
     Blist = cursor.fetchall()
     print("Here are all of your bookings.")
     for bookings in Blist:
@@ -458,8 +469,9 @@ def ManageBookings():
             opt = input('Invalid option. Try again: ')
     
     if newBooking:
-        member = input('Enter the EMAIL of the member whose ride you want to book: ')
-        cursor.execute('''SELECT * FROM rides WHERE driver = ? ;''', member)
+        member = change_type(input('Enter the EMAIL of the member whose ride you want to book: '))
+        cursor.execute('''SELECT * FROM rides WHERE driver LIKE ? ;''', (member))
+
         RidList = cursor.fetchall()
 
         i = 0
@@ -470,6 +482,7 @@ def ManageBookings():
         opt = True
         while (i < len(RidList) and opt):
             r = i
+            print("Rides provided by", member[0])
             opt = input('Display 5 more? (Y/N): ')
             display = YesOrNo(opt)
             if display:
@@ -483,12 +496,12 @@ def ManageBookings():
         print('')
         
 
-        Brno = input('Please enter the Ride Number that you want to book: ')
-        email = input('Please enter the email of the member who offers the ride: ')
-        cost = input('Please enter the price you can offer for each seat: ')
-        seats = input('Please enter the seat required of your booking: ')
-        pickup = input('Please enter the location code of your pick up location: ')
-        dropoff = input('Please enter the location code of your drop off location: ')
+        Brno = change_type(input('Please enter the Ride Number that you want to book: '))
+        email = change_type(input('Please enter the email of the member who offers the ride: '))
+        cost = change_type(input('Please enter the price you can offer for each seat: '))
+        seats = change_type(input('Please enter the seat required of your booking: '))
+        pickup = change_type(input('Please enter the location code of your pick up location: '))
+        dropoff = change_type( input('Please enter the location code of your drop off location: '))
         cursor.execute('SELECT COUNT(*) FROM bookings ')
         bno = cursor.fetchone()
         bno = 1 + int(bno[0])
@@ -496,11 +509,15 @@ def ManageBookings():
         
         cursor.execute('SELECT seats FROM rides WHERE rno = ? ;', Brno)
         rseats = cursor.fetchone()
-        if seats > int(rseats[0]):
+        if int(seats) > int(rseats[0]):
             print('Warning! This member may not be able to offer all seats for your request! Your booking will still be registed.')
 
-        info = (bno, email, Brno, cost, seats, pickup, fropoff)
-        cursor.execute('INSERT INTO bookings(bno, email, rno, cost, seats, pickup, dropoff) VALUE (?,?,?,?,?,?,?);', info)
+        info = (bno, email, Brno, cost, seats, pickup, dropoff)
+        try:
+            cursor.execute("INSERT INTO bookings(bno, email, rno, cost, seats, pickup, dropoff) VALUES (?,?,?,?,?,?,?)", info)
+        except:
+            print('f')
+            ToMainMenu()
         connection.commit()
         
         content = 'Someone has offered a Booking!'
@@ -509,9 +526,13 @@ def ManageBookings():
         mess = (member, ti, g_mail, content, Brno, 'n')
         cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mess)
         #send message to booked member
+
         
     elif cancelBooking:
-        targetBno = input('Enter booking number to cancel booking: ')
+        if len(Blist)<1:
+            print('You have no Bookings currently!')
+            ToMainMenu()
+        targetBno = change_type(input('Enter booking number to cancel booking: '))
         confirm = input('Cancel booking? (Y/N): ')
         cancelBno = YesOrNo(confirm)
         cursor.execute('SELECT * FROM rides WHERE bookings.bno = ? AND bookings.rno = rides.rno ;', targetBno )
@@ -559,7 +580,7 @@ def PostRideReq():
         new_rid = current_rid[0] + 1
         #newEmail is the request poster
         #finish create ridereq
-        info = (new_rid,g_email,newDate,newPickup.lower(),newDropoff.lower(),newPrice)
+        info = (new_rid,g_email[0],newDate,newPickup.lower(),newDropoff.lower(),newPrice)
         cursor.execute('INSERT INTO requests(rid, email, rdate, pickup, dropoff,amount) VALUES (?,?,?,?,?,?);', info)
         #success message
         connection.commit()
