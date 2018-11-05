@@ -143,6 +143,6 @@ insert into requests values
 
 -- |email|msgTimestamp|sender|content|rno|seen|
 insert into inbox values
-        ('don@mayor.yeg', '2018-08-04', 'darryl@oil.com', 'message content is here', 36, 'n'),
-        ('jane_doe@abc.ca', '2018-09-04', 'darryl@oil.com', '2nd message content is here', 43, 'n'),
-        ('don@mayor.yeg', '2018-10-04', 'darryl@oil.com', '3rd message content is here', 42, 'n');
+        ('don@mayor.yeg', '2018-08-04 10:52', 'darryl@oil.com', 'message content is here', 36, 'n'),
+        ('jane_doe@abc.ca', '2018-09-04 15:28', 'darryl@oil.com', '2nd message content is here', 43, 'n'),
+        ('don@mayor.yeg', '2018-10-04 23:59', 'darryl@oil.com', '3rd message content is here', 42, 'n');

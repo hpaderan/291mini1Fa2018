@@ -1,6 +1,7 @@
 import time
 import getpass
 import sqlite3
+import datetime
 
 connection = None
 cursor = None
@@ -372,48 +373,103 @@ def PostRideReq():
     return
 
 '''*******************************************
-* Search for Ride Requests - Harrold
+* Search for Ride Requests - Harrold - done
 *******************************************'''
 def SearchRideReq():
     Divider()
     
     ## Command check
-    keywords = input("Enter Location keywords or 'Main Menu': ")
+    keyword = input("Enter Location keywords or 'Main Menu': ")
 
-    if keywords.lower() == "main menu":
+    if keyword.lower() == "main menu":
         ToMainMenu()
     else:
         #process keywords here
-        #split into single words
+        #split into single words    
+        while (len(keyword.split()) > 1):
+            keyword = input("Please enter a city or a location code: ")
+
         # search database; input check
-        results = ['poop', 'poo', 'po']
-        i = 0
-        
-        # if result success:
-        while (i < len(results) and i < 5):
-            #display results here
-            i += 1
-            print("printing", str(6 - i), "search results")
+        searchRes = []
+        fmtTemp = (keyword[0].upper(), keyword[1:].lower())
+        fmtKeyword = "%s%s" % fmtTemp
+        cursor.execute('''SELECT * 
+                          FROM requests 
+                          WHERE pickup = ? 
+                          OR pickup IN (SELECT lcode FROM locations WHERE city = ?)''', (keyword,fmtKeyword))
+        searchRes = cursor.fetchall()
+        searchRids = []
+                
+        for req in searchRes:
+            searchRids.append(req[0])
+            
+            reqName = GetFullName(req[1])
+            reqPickup = GetAddressFromCode(req[3])
+            reqDropoff = GetAddressFromCode(req[4])
+            fmtReq = ("%s : %s from %s to %s %s -- $%s") % (req[0], reqName, reqPickup, reqDropoff, req[2], req[5])
+            print(fmtReq)
             
     #on success, option to request booking on a ride
-        optRid = input("Enter Request ID to message requester, or 'Cancel': ")
-        if optRid.lower() == 'cancel':
-            ToMainMenu()
-        else:
-            message = input("Message to requester: ")
-            email = "get email of request"
-            
-            # book seats here!!!!
+        print('')
+        optRid = input("Enter Request number to message requester, or 'Cancel': ")
+                
+        #input check
+        invRid = True
+        while invRid:
+            if optRid.lower() == 'cancel':
+            # case if user wants to cancel message sending
+                invRid = False
+                # exit out of loop into Main Menu
+                
+            elif (int(optRid) in searchRids):
+            # case if rid is valid and user is sending a message
+                invRid = False
+                
+                # Rno check
+                invRno = True
+                mssgRno = input("Enter an RNO of associated Ride, or 'Cancel': ")
+                print(g_email)
+                cursor.execute("SELECT rno FROM rides WHERE driver = ?;", g_email)
+                confirmRnos = []
+                allRnos = cursor.fetchall()
+                for eachRno in allRnos:
+                    confirmRnos.append(str(eachRno[0]))
+                while invRno:
+                    if (str(mssgRno).lower() == "cancel"):
+                        #case if user cancel rno selection
+                        invRno = False
+                        break
+                    elif (mssgRno in confirmRnos):
+                        #case if rno selection success
+                        invRno = False
+                        message = input("Message to requester: ")
+                        
+                        #get email to
+                        for req in searchRes:
+                            if req[0] == int(optRid):
+                                email = req[1]         
+                                
+                        #get mssg info
+                        timeNow = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                        mssgInKey = (email, timeNow, g_email[0], message, mssgRno,'n')
+                        
+                        # send message here
+                        cursor.execute("INSERT INTO inbox (email, msgTimestamp, sender, content, rno, seen) VALUES (?,?,?,?,?,?)", mssgInKey)
+                        connection.commit()
+                        #on success:
+                        print("Message sent to ", email)  
+                        time.sleep(0.5)
+                        
+                    else:
+                        #case if invalid rno
+                        mssgRno = input("You are not the driver of this ride, \n\tPlease enter RNO of a ride you offered: ")
+                        
+            else:
+            # case if input is invalid
+                optRid = input("Invalid RID. Please try again: ")
         
-            #on success:
-            print("Message sent to ", email)
-            #on fail
-            print("Do we need a fail case here?")
-        
-        # if search fail:
-        
-            #redirect main menu
-            ToMainMenu()        
+        #redirect main menu
+        ToMainMenu()        
             
     print('\tdebug: searchreq call')
     return
@@ -439,12 +495,14 @@ def ViewRideReq():
     
     cancelRid = input('Enter Request ID to cancel request, or "Return": ')
 
-    if (cancelRid.lower != 'return'):
+    cancel = False
+    if (cancelRid.lower() != 'return'):
         confirm = input("Cancel request? (Y/N): ")
         cancel = YesOrNo(confirm)
         
-    intRid = int(cancelRid)
+    
     if cancel:
+        intRid = int(cancelRid)
         print("Booking canceled.")
         cursor.execute("DELETE FROM requests WHERE rid = ?", (intRid,))
         connection.commit()
@@ -516,5 +574,16 @@ def keyword_search(keyword):
             opt = input('continue to print? (Y/N): ')
             printing = YesOrNo(opt)
 
+'''** Get member name from email **'''
+def GetFullName(email):
+    global connection, cursor
+    cursor.execute("SELECT name FROM members WHERE email = ?;", (email,))
+    return cursor.fetchone()[0]
 
+'''**  Get address from location code **'''
+def GetAddressFromCode (lcode):
+    global connection, cursor
+    cursor.execute("SELECT address,city,prov FROM locations WHERE lcode = ?;", (lcode,))
+    return cursor.fetchone()
+    
 Main()
