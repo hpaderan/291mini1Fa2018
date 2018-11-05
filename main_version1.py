@@ -133,7 +133,7 @@ def Register():
             created = True
     connection.commit()            
     ##GOTO main menu
-    g_email = regEmail
+    g_email = (regEmail,)
     MainMenu()
         
     print('\tdebug: register call')
@@ -207,7 +207,7 @@ def MainMenu():
 def OfferRide():
     Divider()
     global connection, cursor, g_email
-    print(g_email)
+    #print(g_email)
     ## Input check
     opt = input('Offer a ride? (Y/N): ')
     newOffer = YesOrNo(opt)
@@ -261,14 +261,14 @@ def OfferRide():
             opt = input('Adding a car ? (Y/N): ')
             car_add_opt = YesOrNo(opt)
             if car_add_opt:
-                cno = change_type(input("Please enter your cno"))
+                cno = change_type(input("Please enter your cno : "))
                 cursor.execute("SELECT owner FROM cars WHERE cno = ?;",cno)
                 car_search_result = cursor.fetchone()
-                print(car_search_result[0])
+                #print(car_search_result[0])
                 if car_search_result == None:
                     print("Can not find this car, please try again")
                     continue;
-                elif car_search_result[0] != g_email:
+                if car_search_result[0] != g_email[0]:
                     print("This car does not belong to you,please try again")
                 
                 else:
@@ -284,6 +284,9 @@ def OfferRide():
         while enroute_add_success == False:
             opt = input('Adding set of enroute location ? (Y/N): ')
             add_enroute_opt = YesOrNo(opt)
+            if insert_cno == None:
+                print("Can not createnroute without a cno")
+                break
             if add_enroute_opt:
                 keyword = change_type(input("Please enter the keyword (lcode)"))
                 cursor.execute("SELECT * FROM locations WHERE lcode = ?;",keyword)
@@ -291,15 +294,16 @@ def OfferRide():
                 if key_word_search == None:
                     keyword_search(keyword[0])
                     continue
-                enroute_info = (new_rno,keyword)
+                enroute_info = (new_rno,keyword[0])
                 cursor.execute('INSERT INTO enroute(rno, lcode) VALUES (?,?);', enroute_info)
                 connection.commit() 
+                enroute_add_success = True
             else:
                 enroute_add_success = True
             
 
         # auto set driver and unique rno
-        info = (new_rno,inputprice,inputDate,inputSeats,inputLugg.lower(),newSrc,newDst,g_email,insert_cno)
+        info = (new_rno,inputprice,inputDate,inputSeats,inputLugg.lower(),newSrc[0],newDst[0],g_email[0],insert_cno)
         cursor.execute('INSERT INTO rides(rno, price, rdate,seats,lugDesc, src, dst, driver, cno) VALUES (?,?,?,?,?,?,?,?,?);', info)
         connection.commit()
         # post ride here
@@ -759,7 +763,6 @@ def change_type(strings):
 def keyword_search(keyword):
     global connection, cursor
     keyword = keyword.capitalize()
-    print(keyword)
     similar_address = "%"+keyword + "%"
     keyword = (keyword,keyword,similar_address)
     cursor.execute("select distinct* from locations where city = ? or prov = ? or address like ?; ",keyword)
@@ -777,8 +780,8 @@ def keyword_search(keyword):
             if length < 5:
                 for i in range(length):
                     print(result[count+i])
-                print("printed all reavent locations")
-        
+                print("printed all similar locations")
+                return
             for i in range(5):
                 print(result[count+i])
             opt = input('continue to print? (Y/N): ')
