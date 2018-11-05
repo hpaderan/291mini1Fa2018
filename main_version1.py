@@ -92,7 +92,7 @@ def LogIn():
         MainMenu()
     elif maxTry:
         print("Reached max number of tries")
-        time.sleep(1)
+        time.sleep(0.7)
     
        
     print('\tdebug: login call')
@@ -570,7 +570,7 @@ def PostRideReq():
     return
 
 '''*******************************************
-* Search for Ride Requests - Harrold - done
+* Search for Ride Requests
 *******************************************'''
 def SearchRideReq():
     Divider()
@@ -597,26 +597,36 @@ def SearchRideReq():
         searchRes = cursor.fetchall()
         searchRids = []
                 
-        for req in searchRes:
-            searchRids.append(req[0])
-            
-            reqName = GetFullName(req[1])
-            reqPickup = GetAddressFromCode(req[3])
-            reqDropoff = GetAddressFromCode(req[4])
-            fmtReq = ("%s : %s from %s to %s %s -- $%s") % (req[0], reqName, reqPickup, reqDropoff, req[2], req[5])
-            print(fmtReq)
+        
             
     #on success, option to request booking on a ride
         print('')
-        optRid = input("Enter Request number to message requester, or 'Cancel': ")
                 
         #input check
         invRid = True
-        while invRid:
+        dispIndex = 0
+        while invRid:         
+            for i in range(dispIndex, dispIndex+5):
+                if (i < len(searchRes)):
+                    searchRids.append(searchRes[i][0])
+                    
+                    reqName = GetFullName(searchRes[i][1])
+                    reqPickup = GetAddressFromCode(searchRes[i][3])
+                    reqDropoff = GetAddressFromCode(searchRes[i][4])
+                    fmtReq = ("%s : %s from %s to %s %s -- $%s") % (searchRes[i][0], reqName, reqPickup, reqDropoff, searchRes[i][2], searchRes[i][5])
+                    print(fmtReq)
+        
+            Divider()
+            optRid = input("Enter Request number to message requester, 'Next' to view next 5, or 'Cancel': ")               
             if optRid.lower() == 'cancel':
             # case if user wants to cancel message sending
                 invRid = False
                 # exit out of loop into Main Menu
+                
+            elif optRid.lower() == 'next':
+                dispIndex += 5
+                if dispIndex >= len(searchRes):
+                    dispIndex = 0
                 
             elif (int(optRid) in searchRids):
             # case if rid is valid and user is sending a message
@@ -625,7 +635,6 @@ def SearchRideReq():
                 # Rno check
                 invRno = True
                 mssgRno = input("Enter an RNO of associated Ride, or 'Cancel': ")
-                print(g_email)
                 cursor.execute("SELECT rno FROM rides WHERE driver = ?;", g_email)
                 confirmRnos = []
                 allRnos = cursor.fetchall()
@@ -663,7 +672,7 @@ def SearchRideReq():
                         
             else:
             # case if input is invalid
-                optRid = input("Invalid RID. Please try again: ")
+                print("Invalid RID. Please try again: ")
         
         #redirect main menu
         ToMainMenu()        
@@ -672,7 +681,7 @@ def SearchRideReq():
     return
 
 '''*******************************************
-* View/Delete current Ride Requests - Harrold, done
+* View/Delete current Ride Requests
 *******************************************'''
 def ViewRideReq():
     Divider()
